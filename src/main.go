@@ -9,7 +9,7 @@ import (
 
 func routes() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/books/new", handlers.CreateBookHandler).Methods("POST")
+	r.HandleFunc("/books", handlers.CreateBookHandler).Methods("POST")
 	r.HandleFunc("/books", handlers.BooksHandler).Methods("GET")
 	return r
 }

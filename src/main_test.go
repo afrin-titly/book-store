@@ -16,7 +16,7 @@ func TestMain(t *testing.T) {
 	tests := []testCase{
 		{
 			name:          "Create new book",
-			route:         "/books/new",
+			route:         "/books",
 			method:        "POST",
 			expecteStatus: 200,
 		},
