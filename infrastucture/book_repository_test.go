@@ -23,7 +23,7 @@ func TestBookRepositoryDB_GetAll(t *testing.T) {
 		t.Fatalf("Error initializing sqlmock: %v", err)
 	}
 
-	// defer db.Close()
+	defer db.Close()
 
 	repo := infrastucture.NewBookRepositoryDB(db)
 
