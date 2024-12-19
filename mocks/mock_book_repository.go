@@ -14,3 +14,8 @@ func (m *MockBookRepository) GetAll() ([]domain.Book, error) {
 	args := m.Called()
 	return args.Get(0).([]domain.Book), args.Error(1)
 }
+
+func (m *MockBookRepository) GetBook(ID int) (domain.Book, error) {
+	args := m.Called()
+	return args.Get(0).(domain.Book), args.Error(1)
+}

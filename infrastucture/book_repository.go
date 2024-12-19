@@ -31,3 +31,12 @@ func (r *BookRepositoryDB) GetAll() ([]domain.Book, error) {
 	}
 	return books, nil
 }
+
+func (r *BookRepositoryDB) GetBook(ID int) (domain.Book, error) {
+	row := r.DB.QueryRow(`SELECT title, author, genre, price, stock FROM books WHERE id = ?`, ID)
+	var book domain.Book
+	if err := row.Scan(&book.Title, &book.Author, &book.Genre, &book.Price, &book.Stock); err != nil {
+		return domain.Book{}, err
+	}
+	return book, nil
+}
