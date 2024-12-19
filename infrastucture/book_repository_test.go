@@ -31,12 +31,12 @@ func TestBookRepositoryDB_GetAll(t *testing.T) {
 		{
 			name: "success - fetch all books",
 			expected: []domain.Book{
-				{ID: 1, Title: "Test Title 1", Author: "Test Author 1"},
-				{ID: 2, Title: "Test Title 2", Author: "Test Author 2"},
+				{Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10},
+				{Title: "Test Title 2", Author: "Test Author 2", Genre: "Adventure", Price: "150", Stock: 20},
 			},
 			mockSetup: func() {
-				rows := sqlmock.NewRows([]string{"id", "title", "author"}).AddRow(1, "Test Title 1", "Test Author 1").AddRow(2, "Test Title 2", "Test Author 2")
-				mock.ExpectQuery("SELECT \\* FROM books").WillReturnRows(rows)
+				rows := sqlmock.NewRows([]string{"title", "author", "genre", "price", "stock"}).AddRow("Test Title 1", "Test Author 1", "Horror", "100", 10).AddRow("Test Title 2", "Test Author 2", "Adventure", "150", 20)
+				mock.ExpectQuery("SELECT title, author, genre, price, stock FROM books").WillReturnRows(rows)
 			},
 			shouldError: false,
 		},
@@ -44,7 +44,7 @@ func TestBookRepositoryDB_GetAll(t *testing.T) {
 			name:     "failure - query execution fails",
 			expected: nil,
 			mockSetup: func() {
-				mock.ExpectQuery("SELECT \\* FROM books").WillReturnError(fmt.Errorf("Some DB error"))
+				mock.ExpectQuery("SELECT title, author, genre, price, stock FROM books").WillReturnError(fmt.Errorf("Some DB error"))
 			},
 			shouldError: true,
 		},

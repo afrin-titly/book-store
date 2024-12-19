@@ -27,13 +27,13 @@ func TestBookService_GetAll(t *testing.T) {
 		{
 			name: "Successfull Retrival",
 			expected: []domain.Book{
-				{ID: 1, Title: "Test Title 1", Author: "Test Author 1"},
-				{ID: 2, Title: "Test Title 2", Author: "Test Author 2"},
+				{Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10},
+				{Title: "Test Title 2", Author: "Test Author 2", Genre: "Adventure", Price: "150", Stock: 20},
 			},
 			mockSetup: &MockRepository{
 				Books: []domain.Book{
-					{ID: 1, Title: "Test Title 1", Author: "Test Author 1"},
-					{ID: 2, Title: "Test Title 2", Author: "Test Author 2"},
+					{Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10},
+					{Title: "Test Title 2", Author: "Test Author 2", Genre: "Adventure", Price: "150", Stock: 20},
 				},
 				Err: nil,
 			},

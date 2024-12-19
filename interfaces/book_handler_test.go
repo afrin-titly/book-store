@@ -29,13 +29,13 @@ func TestGetAllBooks(t *testing.T) {
 		{
 			name: "Successful response",
 			expected: []domain.Book{
-				{ID: 1, Title: "Book 1", Author: "Author"},
-				{ID: 2, Title: "Book 2", Author: "Author"},
+				{Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10},
+				{Title: "Test Title 2", Author: "Test Author 2", Genre: "Adventure", Price: "150", Stock: 20},
 			},
 			mockSetup: func() {
 				repo.On("GetAll").Return([]domain.Book{
-					{ID: 1, Title: "Book 1", Author: "Author"},
-					{ID: 2, Title: "Book 2", Author: "Author"},
+					{Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10},
+					{Title: "Test Title 2", Author: "Test Author 2", Genre: "Adventure", Price: "150", Stock: 20},
 				}, nil).Once()
 			},
 			statusCode: http.StatusOK,

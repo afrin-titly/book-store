@@ -14,7 +14,7 @@ func NewBookRepositoryDB(db *sql.DB) *BookRepositoryDB {
 }
 
 func (r *BookRepositoryDB) GetAll() ([]domain.Book, error) {
-	rows, err := r.DB.Query(`SELECT * FROM books`)
+	rows, err := r.DB.Query(`SELECT title, author, genre, price, stock FROM books`)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func (r *BookRepositoryDB) GetAll() ([]domain.Book, error) {
 	var books []domain.Book
 	for rows.Next() {
 		book := domain.Book{}
-		if err := rows.Scan(&book.ID, &book.Title, &book.Author); err != nil {
+		if err := rows.Scan(&book.Title, &book.Author, &book.Genre, &book.Price, &book.Stock); err != nil {
 			return nil, err
 		}
 		books = append(books, book)
