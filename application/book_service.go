@@ -13,3 +13,7 @@ func NewBookService(repo domain.BookRepository) *BookService {
 func (s *BookService) GetAll() ([]domain.Book, error) {
 	return s.service.GetAll()
 }
+
+func (s *BookService) GetBook(ID int) (domain.Book, error) {
+	return s.service.GetBook(ID)
+}

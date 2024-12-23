@@ -16,6 +16,6 @@ func (m *MockBookRepository) GetAll() ([]domain.Book, error) {
 }
 
 func (m *MockBookRepository) GetBook(ID int) (domain.Book, error) {
-	args := m.Called()
+	args := m.Called(ID)
 	return args.Get(0).(domain.Book), args.Error(1)
 }
