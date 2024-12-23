@@ -11,10 +11,12 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	"github.com/gorilla/mux"
 )
 
 func TestGetAllBooks(t *testing.T) {
-	repo := &mocks.MockBookRepository{}
+	repo := new(mocks.MockBookRepository)
 	service := application.NewBookService(repo)
 	h := interfaces.NewBookHandler(service)
 
@@ -74,4 +76,59 @@ func TestGetAllBooks(t *testing.T) {
 		})
 	}
 
+}
+
+func TestGetOneBook(t *testing.T) {
+	type testCase struct {
+		name       string
+		ID         string
+		expected   domain.Book
+		mockSetup  func()
+		statusCode int
+	}
+
+	mockRepo := new(mocks.MockBookRepository)
+	service := application.NewBookService(mockRepo)
+	h := interfaces.NewBookHandler(service)
+
+	tests := []testCase{
+		{
+			name: "Successfull - get one Book",
+			ID:   "1",
+			expected: domain.Book{
+				Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+			},
+			mockSetup: func() {
+				mockRepo.On("GetBook", 1).Return(domain.Book{
+					Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+				}, nil).Once()
+			},
+			statusCode: http.StatusOK,
+		},
+		{
+			name: "Error while converting ID",
+			ID:   "abc",
+			mockSetup: func() {
+				mockRepo.On("GetBook", "abc").Return(nil, errors.New("Conversion Error")).Once()
+			},
+			statusCode: http.StatusBadRequest,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.mockSetup()
+			req, err := http.NewRequest("GET", "/books/"+tc.ID, nil)
+			if err != nil {
+				t.Fatalf("Failed to create request: %v", err)
+			}
+			r := mux.NewRouter()
+			r.HandleFunc("/books/{id}", h.GetBookHandler).Methods("GET")
+			response := httptest.NewRecorder()
+			r.ServeHTTP(response, req)
+
+			if response.Code != tc.statusCode {
+				t.Errorf("Expected status code %d, but got %d", tc.statusCode, response.Code)
+			}
+		})
+	}
 }
