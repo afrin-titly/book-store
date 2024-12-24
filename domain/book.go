@@ -16,4 +16,5 @@ type Book struct {
 type BookRepository interface {
 	GetAll() ([]Book, error)
 	GetBook(ID int) (Book, error)
+	CreateBook(book *Book) (*Book, error)
 }

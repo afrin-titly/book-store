@@ -40,3 +40,12 @@ func (r *BookRepositoryDB) GetBook(ID int) (domain.Book, error) {
 	}
 	return book, nil
 }
+
+func (r *BookRepositoryDB) CreateBook(newBook *domain.Book) (*domain.Book, error) {
+	book := &domain.Book{}
+	err := r.DB.QueryRow(`INSERT INTO books VALUES(?,?,?,?,?)`, newBook.Title, newBook.Author, newBook.Genre, newBook.Price, newBook.Stock).Scan(&book.Title, &book.Author, &book.Genre, &book.Price, &book.Stock)
+	if err != nil {
+		return nil, err
+	}
+	return book, err
+}
