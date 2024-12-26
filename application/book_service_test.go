@@ -115,3 +115,55 @@ func TestBookService_GetOneBook(t *testing.T) {
 		})
 	}
 }
+
+func TestBookService_CreateBook(t *testing.T) {
+	mockRepo := new(mocks.MockBookRepository)
+	service := application.NewBookService(mockRepo)
+	type testCase struct {
+		name      string
+		input     *domain.Book
+		expected  *domain.Book
+		mockSetup func()
+	}
+	tests := []testCase{
+		{
+			name: "Successful book create",
+			input: &domain.Book{
+				Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+			},
+			expected: &domain.Book{
+				Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+			},
+			mockSetup: func() {
+				mockRepo.On("CreateBook", &domain.Book{
+					Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+				}).Return(&domain.Book{
+					Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+				}, nil)
+			},
+		},
+		{
+			name:     "Un Successful book create",
+			input:    &domain.Book{},
+			expected: nil,
+			mockSetup: func() {
+				mockRepo.On("CreateBook", &domain.Book{}).Return(nil, errors.New("Ohh no error!"))
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.mockSetup()
+			result, err := service.CreateBook(tc.input)
+			if err != nil {
+				assert.Error(t, err)
+				assert.Nil(t, result)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, result)
+			}
+		})
+		mockRepo.AssertExpectations(t)
+	}
+}

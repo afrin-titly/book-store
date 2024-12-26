@@ -17,3 +17,7 @@ func (s *BookService) GetAll() ([]domain.Book, error) {
 func (s *BookService) GetBook(ID int) (domain.Book, error) {
 	return s.service.GetBook(ID)
 }
+
+func (s *BookService) CreateBook(book *domain.Book) (*domain.Book, error) {
+	return s.service.CreateBook(book)
+}
