@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -128,6 +129,83 @@ func TestGetOneBook(t *testing.T) {
 
 			if response.Code != tc.statusCode {
 				t.Errorf("Expected status code %d, but got %d", tc.statusCode, response.Code)
+			}
+		})
+	}
+}
+
+func TestCreateBook(t *testing.T) {
+	mock := new(mocks.MockBookRepository)
+	service := application.NewBookService(mock)
+	h := interfaces.NewBookHandler(service)
+	type testCase struct {
+		name        string
+		input       string
+		expected    domain.Book
+		mockSetup   func()
+		statusCode  int
+		shouldError bool
+	}
+
+	tests := []testCase{
+		{
+			name:  "Succussful book create",
+			input: `{"title": "Test Title 1", "author": "Test Author 1", "genre": "Horror", "price": "100", "stock": 10}`,
+			expected: domain.Book{
+				Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+			},
+			mockSetup: func() {
+				mock.On("CreateBook", &domain.Book{
+					Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+				}).Return(
+					&domain.Book{
+						Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+					}, nil)
+			},
+			statusCode:  http.StatusOK,
+			shouldError: false,
+		},
+		{
+			name:     "json decode fail",
+			input:    `{title: "Test Title 1", "author": "Test Author 1", "genre": "Horror", "price": "100", "stock": 10}`,
+			expected: domain.Book{},
+			mockSetup: func() {
+				mock.On("CreateBook", &domain.Book{
+					Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+				}).Return(
+					&domain.Book{
+						Title: "Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+					}, nil)
+			},
+			statusCode:  http.StatusBadRequest,
+			shouldError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.mockSetup()
+			req, err := http.NewRequest("POST", "/books", strings.NewReader(tc.input))
+			if err != nil {
+				t.Fatalf("Failed to create request: %v", err)
+			}
+			r := mux.NewRouter()
+			r.HandleFunc("/books", h.CreateBookHandler).Methods("POST")
+			response := httptest.NewRecorder()
+			r.ServeHTTP(response, req)
+
+			if tc.statusCode != response.Code {
+				t.Errorf("Expected status code %d, but got %d", tc.statusCode, response.Code)
+			}
+
+			if !tc.shouldError {
+				var newBook domain.Book
+				json.NewDecoder(response.Body).Decode(&newBook)
+
+				t.Logf("res %T exp %T", &newBook, tc.expected)
+				if newBook != tc.expected {
+					t.Errorf("Expected body %v, but got %v", tc.expected, newBook)
+				}
 			}
 		})
 	}

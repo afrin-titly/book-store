@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"book-apis/application"
+	"book-apis/domain"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -41,4 +42,21 @@ func (s *BookHandler) GetBookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-type", "application/json")
 	json.NewEncoder(w).Encode(book)
+}
+
+func (s *BookHandler) CreateBookHandler(w http.ResponseWriter, r *http.Request) {
+	var book domain.Book
+	err := json.NewDecoder(r.Body).Decode(&book)
+	if err != nil {
+		http.Error(w, "Can not Decode json", http.StatusBadRequest)
+		return
+	}
+	newBook, err := s.service.CreateBook(&book)
+	if err != nil {
+
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-type", "application/json")
+	json.NewEncoder(w).Encode(newBook)
 }
