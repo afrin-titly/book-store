@@ -60,3 +60,21 @@ func (s *BookHandler) CreateBookHandler(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-type", "application/json")
 	json.NewEncoder(w).Encode(newBook)
 }
+
+func (s *BookHandler) UpdateBookHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, "Can not convert id to int", http.StatusBadRequest)
+		return
+	}
+	var book *domain.Book
+	json.NewDecoder(r.Body).Decode(&book)
+	updatedBook, e := s.service.UpdateBook(book, id)
+	if e != nil {
+		http.Error(w, "Can not update book", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-type", "application/json")
+	json.NewEncoder(w).Encode(updatedBook)
+}

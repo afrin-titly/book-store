@@ -21,3 +21,7 @@ func (s *BookService) GetBook(ID int) (domain.Book, error) {
 func (s *BookService) CreateBook(book *domain.Book) (*domain.Book, error) {
 	return s.service.CreateBook(book)
 }
+
+func (s *BookService) UpdateBook(book *domain.Book, ID int) (*domain.Book, error) {
+	return s.service.UpdateBook(book, ID)
+}

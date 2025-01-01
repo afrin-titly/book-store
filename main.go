@@ -16,6 +16,7 @@ func routes(h *interfaces.BookHandler) *mux.Router {
 	r.HandleFunc("/books", h.GetAllBookHandler).Methods("GET")
 	r.HandleFunc("/books/{id}", h.GetBookHandler).Methods("GET")
 	r.HandleFunc("/books", h.CreateBookHandler).Methods("POST")
+	r.HandleFunc("/books/{id}", h.UpdateBookHandler).Methods("PUT")
 	return r
 }
 

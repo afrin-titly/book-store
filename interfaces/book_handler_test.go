@@ -201,10 +201,67 @@ func TestCreateBook(t *testing.T) {
 			if !tc.shouldError {
 				var newBook domain.Book
 				json.NewDecoder(response.Body).Decode(&newBook)
-
-				t.Logf("res %T exp %T", &newBook, tc.expected)
 				if newBook != tc.expected {
 					t.Errorf("Expected body %v, but got %v", tc.expected, newBook)
+				}
+			}
+		})
+	}
+}
+
+func TestUpdateBook(t *testing.T) {
+	repo := new(mocks.MockBookRepository)
+	service := application.NewBookService(repo)
+	h := interfaces.NewBookHandler(service)
+	type testCase struct {
+		name        string
+		ID          string
+		input       string
+		expected    domain.Book
+		mockSetup   func()
+		statusCode  int
+		shouldError bool
+	}
+	tests := []testCase{
+		{
+			name:  "Successfully update book",
+			ID:    "1",
+			input: `{"title": "Updated Test Title 1", "author": "Test Author 1", "genre": "Horror", "price": "100", "stock": 10}`,
+			expected: domain.Book{
+				Title: "Updated Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+			},
+			mockSetup: func() {
+				repo.On("UpdateBook", &domain.Book{
+					Title: "Updated Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+				}, 1).Return(&domain.Book{
+					Title: "Updated Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+				}, nil)
+			},
+			statusCode:  http.StatusOK,
+			shouldError: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.mockSetup()
+			req, err := http.NewRequest("PUT", "/books/"+tc.ID, strings.NewReader(tc.input))
+			if err != nil {
+				t.Errorf("Failed to create request %v", err)
+			}
+			r := mux.NewRouter()
+			r.HandleFunc("/books/{id}", h.UpdateBookHandler).Methods("PUT")
+			response := httptest.NewRecorder()
+			r.ServeHTTP(response, req)
+
+			if tc.statusCode != response.Code {
+				t.Errorf("Expected status code %d, but got %d", tc.statusCode, response.Code)
+			}
+			if !tc.shouldError {
+				var updatedBook domain.Book
+				json.NewDecoder(response.Body).Decode(&updatedBook)
+				if updatedBook != tc.expected {
+					t.Errorf("Expected body %v, but got %v", tc.expected, updatedBook)
 				}
 			}
 		})

@@ -17,4 +17,5 @@ type BookRepository interface {
 	GetAll() ([]Book, error)
 	GetBook(ID int) (Book, error)
 	CreateBook(book *Book) (*Book, error)
+	UpdateBook(book *Book, ID int) (*Book, error)
 }

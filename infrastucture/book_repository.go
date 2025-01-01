@@ -49,3 +49,12 @@ func (r *BookRepositoryDB) CreateBook(newBook *domain.Book) (*domain.Book, error
 	}
 	return book, err
 }
+
+func (r *BookRepositoryDB) UpdateBook(updateBook *domain.Book, ID int) (*domain.Book, error) {
+	book := &domain.Book{}
+	err := r.DB.QueryRow(`UPDATE books SET title=?, author=?, genre=?, price=?, stock=? WHERE id=?`, updateBook.Title, updateBook.Author, updateBook.Genre, updateBook.Price, updateBook.Stock, ID).Scan(&book.Title, &book.Author, &book.Genre, &book.Price, &book.Stock)
+	if err != nil {
+		return nil, err
+	}
+	return book, nil
+}

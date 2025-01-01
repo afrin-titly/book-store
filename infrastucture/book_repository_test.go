@@ -188,3 +188,60 @@ func TestBookRepositoryDB_CreateBook(t *testing.T) {
 		})
 	}
 }
+
+func TestBookRepositoryDB_UpdateBook(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("Error initializing sqlmock: %v", err)
+	}
+	defer db.Close()
+	type testCase struct {
+		name        string
+		ID          int
+		input       *domain.Book
+		expected    *domain.Book
+		mockSetup   func()
+		shouldError bool
+	}
+	tests := []testCase{
+		{
+			name: "Successful book update",
+			ID:   1,
+			input: &domain.Book{
+				Title: "Updated Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+			},
+			expected: &domain.Book{
+				Title: "Updated Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+			},
+			mockSetup: func() {
+				row := sqlmock.NewRows([]string{"title", "author", "genre", "price", "stock"}).AddRow("Updated Test Title 1", "Test Author 1", "Horror", "100", 10)
+				mock.ExpectQuery("UPDATE books").WithArgs("Updated Test Title 1", "Test Author 1", "Horror", "100", 10, 1).WillReturnRows(row)
+			},
+			shouldError: false,
+		},
+		{
+			name:     "Unsuccessful book update",
+			ID:       1,
+			input:    &domain.Book{},
+			expected: nil,
+			mockSetup: func() {
+				mock.ExpectQuery("UPDATE books").WithArgs().WillReturnError(fmt.Errorf("Oh no error!!"))
+			},
+			shouldError: true,
+		},
+	}
+	repo := infrastucture.NewBookRepositoryDB(db)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.mockSetup()
+			result, err := repo.UpdateBook(tc.input, tc.ID)
+			if tc.shouldError {
+				assert.Error(t, err)
+				assert.Nil(t, result)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, result)
+			}
+		})
+	}
+}
