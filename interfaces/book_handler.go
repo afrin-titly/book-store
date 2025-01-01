@@ -68,8 +68,13 @@ func (s *BookHandler) UpdateBookHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Can not convert id to int", http.StatusBadRequest)
 		return
 	}
+
 	var book *domain.Book
-	json.NewDecoder(r.Body).Decode(&book)
+	err = json.NewDecoder(r.Body).Decode(&book)
+	if err != nil {
+		http.Error(w, "Can not Decode json", http.StatusBadRequest)
+		return
+	}
 	updatedBook, e := s.service.UpdateBook(book, id)
 	if e != nil {
 		http.Error(w, "Can not update book", http.StatusBadRequest)

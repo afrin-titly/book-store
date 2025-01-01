@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestGetAllBooks(t *testing.T) {
@@ -239,6 +240,47 @@ func TestUpdateBook(t *testing.T) {
 			},
 			statusCode:  http.StatusOK,
 			shouldError: false,
+		},
+		{
+			name:     "json decode fail",
+			ID:       "1",
+			input:    `{title: "Updated Test Title 1", "author": "Test Author 1", "genre": "Horror", "price": "100", "stock": 10}`,
+			expected: domain.Book{},
+			mockSetup: func() {
+				repo.On("UpdateBook", &domain.Book{
+					Title: "Updated Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+				}, 1).Return(&domain.Book{
+					Title: "Updated Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+				}, nil)
+			},
+			statusCode:  http.StatusBadRequest,
+			shouldError: true,
+		},
+		{
+			name:     "ID retirval failed",
+			ID:       "a",
+			input:    `{"title": "Updated Test Title 1", "author": "Test Author 1", "genre": "Horror", "price": "100", "stock": 10}`,
+			expected: domain.Book{},
+			mockSetup: func() {
+				repo.On("UpdateBook", &domain.Book{
+					Title: "Updated Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+				}, 1).Return(&domain.Book{
+					Title: "Updated Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
+				}, nil)
+			},
+			statusCode:  http.StatusBadRequest,
+			shouldError: true,
+		},
+		{
+			name:     "update failed",
+			ID:       "10",
+			input:    `{"title": "Updated Test Title 1", "author": "Test Author 1", "genre": "Horror", "price": "100", "stock": 10}`,
+			expected: domain.Book{},
+			mockSetup: func() {
+				repo.On("UpdateBook", mock.AnythingOfType("*domain.Book"), 10).Return(nil, errors.New("Oh no error!"))
+			},
+			statusCode:  http.StatusBadRequest,
+			shouldError: true,
 		},
 	}
 
