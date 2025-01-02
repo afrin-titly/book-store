@@ -18,4 +18,5 @@ type BookRepository interface {
 	GetBook(ID int) (Book, error)
 	CreateBook(book *Book) (*Book, error)
 	UpdateBook(book *Book, ID int) (*Book, error)
+	DeleteBook(ID int) error
 }

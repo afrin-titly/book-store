@@ -35,3 +35,8 @@ func (m *MockBookRepository) UpdateBook(book *domain.Book, ID int) (*domain.Book
 	}
 	return args.Get(0).(*domain.Book), args.Error(1)
 }
+
+func (m *MockBookRepository) DeleteBook(ID int) error {
+	args := m.Called(ID)
+	return args.Error(0)
+}

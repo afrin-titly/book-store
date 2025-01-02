@@ -309,3 +309,44 @@ func TestUpdateBook(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteBook(t *testing.T) {
+	mock := new(mocks.MockBookRepository)
+	service := application.NewBookService(mock)
+	h := interfaces.NewBookHandler(service)
+	type testCase struct {
+		name       string
+		ID         string
+		expected   any
+		mockSetup  func()
+		statusCode int
+		// shouldError bool
+	}
+	tests := []testCase{
+		{
+			name: "Succuessfull delete",
+			ID:   "1",
+			mockSetup: func() {
+				mock.On("DeleteBook", 1).Return(nil)
+			},
+			statusCode: http.StatusOK,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.mockSetup()
+			req, err := http.NewRequest("DELETE", "/books/"+tc.ID, nil)
+			if err != nil {
+				t.Errorf("Failed to create request %v", err)
+			}
+			r := mux.NewRouter()
+			r.HandleFunc("/books/{id}", h.DeleteBookHandler).Methods("DELETE")
+			response := httptest.NewRecorder()
+			r.ServeHTTP(response, req)
+
+			if tc.statusCode != response.Code {
+				t.Errorf("Expected status code %d, but got %d", tc.statusCode, response.Code)
+			}
+		})
+	}
+}

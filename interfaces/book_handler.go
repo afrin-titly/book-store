@@ -83,3 +83,19 @@ func (s *BookHandler) UpdateBookHandler(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-type", "application/json")
 	json.NewEncoder(w).Encode(updatedBook)
 }
+
+func (s *BookHandler) DeleteBookHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	ID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, "Can not convert id to int", http.StatusBadRequest)
+		return
+	}
+	err = s.service.DeleteBook(ID)
+	if err != nil {
+		http.Error(w, "Can not delete Book", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}

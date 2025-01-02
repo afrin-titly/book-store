@@ -4,6 +4,7 @@ import (
 	"book-apis/domain"
 	"book-apis/infrastucture"
 	"database/sql"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -243,5 +244,70 @@ func TestBookRepositoryDB_UpdateBook(t *testing.T) {
 				assert.Equal(t, tc.expected, result)
 			}
 		})
+	}
+}
+
+func TestBookRepositoryDB_DeleteBook(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("Error initializing sqlmock: %v", err)
+	}
+	defer db.Close()
+	type testCase struct {
+		name        string
+		ID          int
+		expected    string
+		mockSetup   func()
+		shouldError bool
+	}
+	tests := []testCase{
+		{
+			name:     "Successful deletion",
+			ID:       1,
+			expected: "",
+			mockSetup: func() {
+				mock.ExpectExec("DELETE FROM books WHERE id=?").WithArgs(1).WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+			shouldError: false,
+		},
+		{
+			name:     "No row deletion",
+			ID:       2,
+			expected: "no rows were deleted",
+			mockSetup: func() {
+				mock.ExpectExec("DELETE FROM books WHERE id=?").WithArgs(2).WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			shouldError: true,
+		},
+		{
+			name:     "Failed deletion - query error",
+			ID:       1,
+			expected: "Oh no error",
+			mockSetup: func() {
+				mock.ExpectExec("DELETE FROM books WHERE id=?").WithArgs(1).WillReturnError(errors.New("Oh no error"))
+			},
+			shouldError: true,
+		},
+	}
+	repo := infrastucture.NewBookRepositoryDB(db)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.mockSetup()
+
+			err := repo.DeleteBook(tc.ID)
+
+			if tc.shouldError {
+				assert.Error(t, err)
+				assert.EqualError(t, err, tc.expected)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			if err := mock.ExpectationsWereMet(); err != nil {
+				t.Errorf("Unmet expectations: %v", err)
+			}
+		})
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
 	}
 }

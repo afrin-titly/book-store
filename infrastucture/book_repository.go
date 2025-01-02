@@ -3,6 +3,7 @@ package infrastucture
 import (
 	"book-apis/domain"
 	"database/sql"
+	"errors"
 )
 
 type BookRepositoryDB struct {
@@ -57,4 +58,20 @@ func (r *BookRepositoryDB) UpdateBook(updateBook *domain.Book, ID int) (*domain.
 		return nil, err
 	}
 	return book, nil
+}
+
+func (r *BookRepositoryDB) DeleteBook(ID int) error {
+	result, err := r.DB.Exec(`DELETE FROM books WHERE id=?`, ID)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("no rows were deleted")
+	}
+	return nil
 }

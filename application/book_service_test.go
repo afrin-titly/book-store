@@ -182,6 +182,7 @@ func TestBookService_UpdateBook(t *testing.T) {
 	tests := []testCase{
 		{
 			name: "Successful book update",
+			ID:   1,
 			input: &domain.Book{
 				Title: "Updated Test Title 1", Author: "Test Author 1", Genre: "Horror", Price: "100", Stock: 10,
 			},
@@ -198,10 +199,11 @@ func TestBookService_UpdateBook(t *testing.T) {
 		},
 		{
 			name:     "Unsuccessful book update",
+			ID:       1,
 			input:    nil,
 			expected: nil,
 			mockSetup: func() {
-				mock.On("UpdateBook", &domain.Book{}, 1).Return(nil, errors.New("Oh no error!!"))
+				mock.On("UpdateBook", (*domain.Book)(nil), 1).Return(nil, errors.New("Oh no error!!"))
 			},
 		},
 	}
@@ -218,5 +220,45 @@ func TestBookService_UpdateBook(t *testing.T) {
 				assert.Equal(t, tc.expected, result)
 			}
 		})
+	}
+}
+
+func TestBookService_deleteBook(t *testing.T) {
+	mock := new(mocks.MockBookRepository)
+	service := application.NewBookService(mock)
+	type testCase struct {
+		name      string
+		ID        int
+		expected  any
+		mockSetup func()
+	}
+
+	tests := []testCase{
+		{
+			name:     "Successfull deletion",
+			ID:       1,
+			expected: nil,
+			mockSetup: func() {
+				mock.On("DeleteBook", 1).Return(nil)
+			},
+		},
+		{
+			name:     "Unsuccessfull deletion",
+			ID:       2,
+			expected: "Oh no error!!",
+			mockSetup: func() {
+				mock.On("DeleteBook", 2).Return(errors.New("Oh no error!"))
+			},
+		},
+	}
+	for _, tc := range tests {
+		tc.mockSetup()
+		err := service.DeleteBook(tc.ID)
+		if err != nil {
+			assert.Error(t, err)
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expected, err)
+		}
 	}
 }
