@@ -18,7 +18,7 @@ func TestSearchRepositoryDB_ExecuteSearch(t *testing.T) {
 	type testCase struct {
 		name      string
 		input     domain.SearchCriteria
-		expected  []domain.Book
+		expected  any
 		mockSetup func()
 	}
 	tests := []testCase{
@@ -36,12 +36,28 @@ func TestSearchRepositoryDB_ExecuteSearch(t *testing.T) {
 				mock.ExpectQuery("SELECT title, author, genre, price FROM books WHERE title LIKE ?").WithArgs("%Harry Potter%").WillReturnRows(rows)
 			},
 		},
+		{
+			name: "Search by title - no result",
+			input: domain.SearchCriteria{
+				Title: "aest blah",
+			},
+			expected: "no result found",
+			mockSetup: func() {
+				rows := sqlmock.NewRows([]string{"title", "author", "genre", "price"})
+				mock.ExpectQuery("SELECT title, author, genre, price FROM books WHERE title LIKE ?").WithArgs(`%aest blah%`).WillReturnRows(rows)
+			},
+		},
 	}
 	repo := infrastucture.NewSearchRepositoryDB(db)
 	for _, tc := range tests {
 		tc.mockSetup()
 		result, err := repo.ExecuteSearch(tc.input)
-		assert.NoError(t, err)
-		assert.Equal(t, tc.expected, result)
+		if err != nil {
+			assert.Error(t, err)
+			assert.Nil(t, result)
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expected, result)
+		}
 	}
 }

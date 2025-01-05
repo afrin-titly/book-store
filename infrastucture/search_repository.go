@@ -3,6 +3,7 @@ package infrastucture
 import (
 	"book-apis/domain"
 	"database/sql"
+	"errors"
 )
 
 type SearchRepositoryDB struct {
@@ -20,7 +21,7 @@ func (query *SearchRepositoryDB) ExecuteSearch(criteria domain.SearchCriteria) (
 	if err != nil {
 		return nil, err
 	}
-
+	defer query.DB.Close()
 	var books []domain.Book
 	for rows.Next() {
 		var book domain.Book
@@ -28,6 +29,10 @@ func (query *SearchRepositoryDB) ExecuteSearch(criteria domain.SearchCriteria) (
 			return nil, err
 		}
 		books = append(books, book)
+	}
+
+	if len(books) == 0 {
+		return nil, errors.New("no result found")
 	}
 	return books, nil
 }
