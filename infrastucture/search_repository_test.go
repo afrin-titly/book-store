@@ -33,7 +33,7 @@ func TestSearchRepositoryDB_ExecuteSearch(t *testing.T) {
 			},
 			mockSetup: func() {
 				rows := sqlmock.NewRows([]string{"title", "author", "genre", "price"}).AddRow("Harry Potter 1", "J.K Rowling", "Fantasy", "100").AddRow("Harry Potter 2", "J.K Rowling", "Fantasy", "100")
-				mock.ExpectQuery("SELECT title, author, genre, price FROM books WHERE title LIKE ?").WithArgs("%Harry Potter%").WillReturnRows(rows)
+				mock.ExpectQuery(`^SELECT title, author, genre, price FROM books WHERE 1=1 AND title LIKE \?$`).WithArgs("%Harry Potter%").WillReturnRows(rows)
 			},
 		},
 		{
@@ -44,9 +44,27 @@ func TestSearchRepositoryDB_ExecuteSearch(t *testing.T) {
 			expected: "no result found",
 			mockSetup: func() {
 				rows := sqlmock.NewRows([]string{"title", "author", "genre", "price"})
-				mock.ExpectQuery("SELECT title, author, genre, price FROM books WHERE title LIKE ?").WithArgs(`%aest blah%`).WillReturnRows(rows)
+				mock.ExpectQuery(`^SELECT title, author, genre, price FROM books WHERE 1=1 AND title LIKE \?$`).WithArgs(`%aest blah%`).WillReturnRows(rows)
 			},
 		},
+		{
+			name: "Search by title and author - success",
+			input: domain.SearchCriteria{
+				Title:  "Harry",
+				Author: "Rowling",
+			},
+			expected: []domain.Book{
+				{Title: "Harry Potter 1", Author: "G. Rowling", Genre: "Fantasy", Price: "100"},
+				{Title: "Harry James 2", Author: "J.K Rowling", Genre: "Horror", Price: "100"},
+			},
+			mockSetup: func() {
+				rows := sqlmock.NewRows([]string{"title", "author", "genre", "price"}).AddRow("Harry Potter 1", "G. Rowling", "Fantasy", "100").AddRow("Harry James 2", "J.K Rowling", "Horror", "100")
+				mock.ExpectQuery(`^SELECT title, author, genre, price FROM books WHERE 1=1 AND title LIKE \? AND author LIKE \?$`).
+					WithArgs("%Harry%", "%Rowling%").
+					WillReturnRows(rows)
+			},
+		},
+		// todo: test for order by
 	}
 	repo := infrastucture.NewSearchRepositoryDB(db)
 	for _, tc := range tests {
@@ -60,4 +78,5 @@ func TestSearchRepositoryDB_ExecuteSearch(t *testing.T) {
 			assert.Equal(t, tc.expected, result)
 		}
 	}
+	assert.NoError(t, mock.ExpectationsWereMet())
 }

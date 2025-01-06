@@ -4,7 +4,7 @@ type SearchCriteria struct {
 	Title  string
 	Author string
 	Genre  string
-	Price  int
+	Price  string
 	SortBy string
 	Order  string
 }

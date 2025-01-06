@@ -15,13 +15,30 @@ func NewSearchRepositoryDB(db *sql.DB) *SearchRepositoryDB {
 }
 
 func (query *SearchRepositoryDB) ExecuteSearch(criteria domain.SearchCriteria) ([]domain.Book, error) {
-	queryString := "SELECT title, author, genre, price FROM books WHERE title LIKE ? "
-	searchTerm := "%" + criteria.Title + "%"
-	rows, err := query.DB.Query(queryString, searchTerm)
+	baseQuery := "SELECT title, author, genre, price FROM books WHERE 1=1"
+	var args []interface{}
+	if criteria.Title != "" {
+		baseQuery += " AND title LIKE ?"
+		args = append(args, "%"+criteria.Title+"%")
+	}
+	if criteria.Author != "" {
+		baseQuery += " AND author LIKE ?"
+		args = append(args, "%"+criteria.Author+"%")
+	}
+	if criteria.Genre != "" {
+		baseQuery += " AND genre LIKE ?"
+		args = append(args, "%"+criteria.Genre+"%")
+	}
+	if criteria.Price != "" {
+		baseQuery += " AND price LIKE ?"
+		args = append(args, "%"+criteria.Price+"%")
+	}
+	rows, err := query.DB.Query(baseQuery, args...)
 	if err != nil {
 		return nil, err
 	}
-	defer query.DB.Close()
+
+	defer rows.Close()
 	var books []domain.Book
 	for rows.Next() {
 		var book domain.Book
