@@ -64,7 +64,58 @@ func TestSearchRepositoryDB_ExecuteSearch(t *testing.T) {
 					WillReturnRows(rows)
 			},
 		},
-		// todo: test for order by
+		{
+			name: "Search by title and Sort by author - success",
+			input: domain.SearchCriteria{
+				Title:  "Harry",
+				SortBy: "author",
+			},
+			expected: []domain.Book{
+				{Title: "Harry Potter 2", Author: "A. Rowling", Genre: "Fantasy", Price: "100"},
+				{Title: "Harry James 1", Author: "J.K Rowling", Genre: "Horror", Price: "100"},
+			},
+			mockSetup: func() {
+				rows := sqlmock.NewRows([]string{"title", "author", "genre", "price"}).AddRow("Harry Potter 2", "A. Rowling", "Fantasy", "100").AddRow("Harry James 1", "J.K Rowling", "Horror", "100")
+				mock.ExpectQuery(`^SELECT title, author, genre, price FROM books WHERE 1=1 AND title LIKE \? ORDER BY \?`).
+					WithArgs("%Harry%", "author").
+					WillReturnRows(rows)
+			},
+		},
+		{
+			name: "Search by title and Sort by author ASC - success",
+			input: domain.SearchCriteria{
+				Title:  "Harry",
+				SortBy: "author",
+				Order:  "asc",
+			},
+			expected: []domain.Book{
+				{Title: "Harry Potter 2", Author: "A. Rowling", Genre: "Fantasy", Price: "100"},
+				{Title: "Harry James 1", Author: "J.K Rowling", Genre: "Horror", Price: "100"},
+			},
+			mockSetup: func() {
+				rows := sqlmock.NewRows([]string{"title", "author", "genre", "price"}).AddRow("Harry Potter 2", "A. Rowling", "Fantasy", "100").AddRow("Harry James 1", "J.K Rowling", "Horror", "100")
+				mock.ExpectQuery(`^SELECT title, author, genre, price FROM books WHERE 1=1 AND title LIKE \? ORDER BY \? \?`).
+					WithArgs("%Harry%", "author", "asc").
+					WillReturnRows(rows)
+			},
+		},
+		{
+			name: "Search by title and Sort by price DESC - success",
+			input: domain.SearchCriteria{
+				Title:  "Harry",
+				SortBy: "price",
+				Order:  "desc",
+			},
+			expected: []domain.Book{
+				{Title: "Harry James 1", Author: "J.K Rowling", Genre: "Horror", Price: "100"},
+				{Title: "Harry Potter 2", Author: "J.K Rowling", Genre: "Fantasy", Price: "50"},
+			},
+			mockSetup: func() {
+				rows := sqlmock.NewRows([]string{"title", "author", "genre", "price"}).AddRow("Harry James 1", "J.K Rowling", "Horror", "100").AddRow("Harry Potter 2", "J.K Rowling", "Fantasy", "50")
+				mock.ExpectQuery(`^SELECT title, author, genre, price FROM books WHERE 1=1 AND title LIKE \? ORDER BY \? \?$`).
+					WithArgs("%Harry%", "price", "desc").WillReturnRows(rows)
+			},
+		},
 	}
 	repo := infrastucture.NewSearchRepositoryDB(db)
 	for _, tc := range tests {

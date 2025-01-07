@@ -33,6 +33,14 @@ func (query *SearchRepositoryDB) ExecuteSearch(criteria domain.SearchCriteria) (
 		baseQuery += " AND price LIKE ?"
 		args = append(args, "%"+criteria.Price+"%")
 	}
+	if criteria.SortBy != "" {
+		baseQuery += " ORDER BY ?"
+		args = append(args, criteria.SortBy)
+	}
+	if criteria.Order != "" {
+		baseQuery += " ?"
+		args = append(args, criteria.Order)
+	}
 	rows, err := query.DB.Query(baseQuery, args...)
 	if err != nil {
 		return nil, err
