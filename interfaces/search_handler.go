@@ -3,6 +3,7 @@ package interfaces
 import (
 	"book-apis/application"
 	"book-apis/domain"
+	"encoding/json"
 	"net/http"
 )
 
@@ -15,7 +16,7 @@ func NewSearchHandler(service *application.SearchService) *SearchHandler {
 }
 
 // GET /books/search?genre=fantasy&sort_by=rating&order=desc
-func (s *SearchHandler) ExecuteSearch(w http.ResponseWriter, r *http.Request) {
+func (s *SearchHandler) ExecuteSearchHandler(w http.ResponseWriter, r *http.Request) {
 	var searchCriteria domain.SearchCriteria
 	queryParams := r.URL.Query()
 	searchCriteria.Title = queryParams.Get("title")
@@ -30,4 +31,6 @@ func (s *SearchHandler) ExecuteSearch(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	w.Header().Set("Content-type", "application/json")
+	json.NewEncoder(w).Encode(books)
 }
