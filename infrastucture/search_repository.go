@@ -6,6 +6,8 @@ import (
 	"errors"
 )
 
+const LIMIT = 10
+
 type SearchRepositoryDB struct {
 	DB *sql.DB
 }
@@ -41,6 +43,14 @@ func (query *SearchRepositoryDB) ExecuteSearch(criteria domain.SearchCriteria) (
 		baseQuery += " ?"
 		args = append(args, criteria.Order)
 	}
+
+	if criteria.Page <= 0 {
+		criteria.Page = 1
+	}
+
+	offset := (criteria.Page - 1) * LIMIT
+	baseQuery += " LIMIT ? OFFSET ?"
+	args = append(args, LIMIT, offset)
 	rows, err := query.DB.Query(baseQuery, args...)
 	if err != nil {
 		return nil, err

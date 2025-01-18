@@ -7,6 +7,7 @@ type SearchCriteria struct {
 	Price  string
 	SortBy string
 	Order  string
+	Page   int
 }
 
 type SearchRepository interface {
